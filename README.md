@@ -86,3 +86,11 @@ Trả về số năm cách biệt hoặc số ngày cách biệt tùy theo ngư�
 Cho biết TIME là thứ mấy trong tuần.
 
 Giá trị trả về: {Mon, Tues, Wed, Thurs, Fri, Sat, Sun}
+
+# SYSCALL
+
+| Mục đích      | Syscall code | Arguments                      | Return          |
+|---------------|--------------|--------------------------------|-----------------|
+| In chuỗi      | 4            | `$a0` = string                 |                 |
+| Nhập chuỗi    | 8            | `$a0` = string, `$a1` = length |                 |
+| Malloc (sbrk) | 10           | `$a0` = amount                 | pointer (`$v0`) |
