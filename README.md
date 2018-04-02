@@ -56,7 +56,11 @@ Các hàm dưới không cần kiểm tra dữ liệu đầu vào.
 
 Xuất chuỗi TIME theo định dạng DD/MM/YYYY, trả về TIME
 
-**Các hàm phía sau có TIME nhập vào theo định dạng DD/MM/DDDD**
+**Các hàm phía sau có TIME nhập vào theo định dạng DD/MM/YYYY**
+
+## int Day(char* TIME), int Month(char* TIME), int Year(char* TIME)
+
+Trả về ngày, tháng, năm.
 
 ## char* Convert(char* TIME, char type)
 
@@ -66,10 +70,6 @@ Chuyển định dạng chuỗi TIME (ghi đè lên TIME), trả về TIME. Đ�
 - ‘C’: DD Month, YYYY
 
 'Month' dùng tên tháng đầy đủ (January,...)
-
-## int Day(char* TIME), int Month(char* TIME), int Year(char* TIME)
-
-Trả về ngày, tháng, năm.
 
 ## int LeapYear(char* TIME)
 
