@@ -23,7 +23,7 @@ EndFunc:
 - `1 <= month <= 12`
 - `day` giới hạn tùy tháng
 
-**Các hàm sau có kết quả trả về ở v0, nếu dữ liệu không hợp lệ thì v1 có giá trị khác 0,
+**Các hàm phía dưới có kết quả trả về ở v0, nếu dữ liệu không hợp lệ thì v1 có giá trị khác 0,
 ngược lại v1 = 0**
 
 ## char *ScanStr()
@@ -50,13 +50,13 @@ Dùng SYSCALL nhập chuỗi sau đó kiểm tra và trả về kí tự đầu.
 
 # Các hàm trong yêu cầu
 
-Các hàm dưới không cần kiểm tra dữ liệu đầu vào.
+**Các hàm dưới không cần kiểm tra dữ liệu đầu vào.**
 
 ## char* Date(int day, int month, int year, char* TIME)
 
 Xuất chuỗi TIME theo định dạng DD/MM/YYYY, trả về TIME
 
-**Các hàm phía sau có TIME nhập vào theo định dạng DD/MM/YYYY**
+**Các hàm dưới có TIME nhập vào theo định dạng DD/MM/YYYY**
 
 ## int Day(char* TIME), int Month(char* TIME), int Year(char* TIME)
 
