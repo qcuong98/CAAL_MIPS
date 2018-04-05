@@ -104,12 +104,12 @@ GetTime:
 	addi $sp, $sp, -8
 	sw $ra, 0($sp)
 	sw $a1, 4($sp)
-	# get number of days from 1/1/1900 to $a0
-	jal GetDaysFrom1900
+	# get number of days from 1/1/1 to $a0
+	jal GetNumOfDays
 	lw $a0, 4($sp)
-	# get number of days from 1/1/1900 to $a1
+	# get number of days from 1/1/1 to $a1
 	sw $v0, 4($sp)
-	jal GetDaysFrom1900
+	jal GetNumOfDays
 	lw $t0, 4($sp)
 	sub $v0, $v0, $t0
 	lw $ra, 0($sp)
@@ -121,15 +121,14 @@ j EndWeekDay
 WeekDay:
 	addi $sp, $sp, -4
 	sw $ra, 0($sp)
-	jal GetDaysFrom1900
-	# $t0 = ($v0 + 2) % 7
-	addi $v0, $v0, 2
+	jal GetNumOfDays
+	# $t0 = $v0 % 7
 	ori $t0, $zero, 7
 	div $v0, $t0
 	mfhi $v0
 	lw $ra, 0($sp)
 	addi $sp, $sp, 4
-	jr $ra	
+	jr $ra
 EndWeekDay:
 
 j EndMain
