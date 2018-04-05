@@ -103,14 +103,20 @@ j EndGetTime
 GetTime:	
 	addi $sp, $sp, -8
 	sw $ra, 0($sp)
+	
+	sw $a1, 4($sp)
 	# get number of days from 1/1/1900 to $a0
 	jal GetDaysFrom1900
-	# get number of days from 1/1/1900 to $a1
+	lw $a1, 4($sp)
+	
 	or $a0, $zero, $a1
 	or $t0, $zero, $v0
+	
+	# get number of days from 1/1/1900 to $a1
 	sw $t0, 4($sp)
 	jal GetDaysFrom1900
 	lw $t0, 4($sp)
+	
 	sub $v0, $t0, $v0
 	lw $ra, 0($sp)
 	addi $sp, $sp, 8
