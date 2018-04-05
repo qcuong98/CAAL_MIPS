@@ -1,3 +1,7 @@
+.data:
+month_sum: .word 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365
+
+.text:
 j Main
 
 
@@ -100,6 +104,77 @@ jr $ra
 EndLeapYear:
 
 
+j EndDateIndex
+DateIndex:
+addiu $sp, $sp, -16
+sw $ra, 0($sp)
+sw $s0, 4($sp)
+sw $s1, 8($sp)
+sw $a0, 12($sp)
+jal Month
+# s1 = 2 < month
+ori $t0, $0, 2
+slt $s1, $t0, $v0
+# s0 = month_sum[month-1]
+addiu $v0, $v0, -1
+sll $v0, $v0, 2
+la $t0, month_sum
+addu $v0, $v0, $t0
+lw $s0, 0($v0)
+# s1 = s1 & is_leap_year
+lw $a0, 12($sp)
+jal LeapYear
+and $s1, $s1, $v0
+# if s1 -> s0 += 1
+beq $s1, $0, DayIndex_DontAdd
+addiu $s0, $s0, 1
+DayIndex_DontAdd:
+# v0 = year - 1
+lw $a0, 12($sp)
+jal Year
+addiu $v0, $v0, -1
+# s0 += v0 * 365
+ori $t1, $0, 365
+mult $v0, $t1
+mflo $t0
+addu $s0, $s0, $t0
+# s0 += v0 / 400
+ori $t1, $0, 400
+div $v0, $t1
+mflo $t0
+addu $s0, $s0, $t0
+# s0 -= v0 / 100
+ori $t1, $0, 100
+div $v0, $t1
+mflo $t0
+subu $s0, $s0, $t0
+# s0 -= v0 / 4
+ori $t1, $0, 4
+div $v0, $t1
+mflo $t0
+addu $s0, $s0, $t0
+# v0 = s0 + day
+lw $a0, 12($sp)
+jal Day
+addu $v0, $s0, $v0
+lw $s1, 8($sp)
+lw $s0, 4($sp)
+lw $ra, 0($sp)
+addiu $sp, $sp, 16
+jr $ra
+EndDateIndex:
+
+
 j EndMain
 Main:
+addiu $sp, $sp, -32
+sw $ra, 0($sp)
+jal Malloc
+or $a0, $0, $v0
+ori $a1, $0, 256
+ori $v0, $0, 8
+syscall
+jal DateIndex
+lw $ra, 0($sp)
+addiu $sp, $sp, 32
 EndMain:
