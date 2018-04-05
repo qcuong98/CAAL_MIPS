@@ -91,6 +91,8 @@ Giá trị trả về: {Mon, Tues, Wed, Thurs, Fri, Sat, Sun}
 
 | Mục đích      | Syscall code | Arguments                      | Return          |
 |---------------|--------------|--------------------------------|-----------------|
+| In số         | 1            | `$a0` = number                 |                 |
 | In chuỗi      | 4            | `$a0` = string                 |                 |
+| Nhập số       | 5            |                                | integer (`$v0`) |
 | Nhập chuỗi    | 8            | `$a0` = string, `$a1` = length |                 |
-| Malloc (sbrk) | 10           | `$a0` = amount                 | pointer (`$v0`) |
+| Malloc (sbrk) | 9            | `$a0` = amount                 | pointer (`$v0`) |
