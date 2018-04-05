@@ -111,7 +111,7 @@ GetTime:
 	sw $v0, 4($sp)
 	jal GetDaysFrom1900
 	lw $t0, 4($sp)
-	sub $v0, $t0, $v0
+	sub $v0, $v0, $t0
 	lw $ra, 0($sp)
 	addi $sp, $sp, 8
 	jr $ra
