@@ -19,7 +19,7 @@ EndFunc:
 
 ## int IsValidTime(int day, int month, int year)
 
-- `0 <= year <= 9999`
+- `1900 <= year <= 9999`
 - `1 <= month <= 12`
 - `day` giới hạn tùy tháng
 
