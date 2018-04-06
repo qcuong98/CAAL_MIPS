@@ -1,9 +1,10 @@
 .data:
 month_sum: .word 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365
 weekday_short: .asciiz "Sat\0\0\0Sun\0\0\0Mon\0\0\0Tues\0\0Wed\0\0\0Thurs\0Fri\0\0\0"
+test_day: .asciiz "07/10/1998"
 
 .text:
-j Main
+j Convert
 
 
 j EndMalloc
@@ -13,6 +14,64 @@ Malloc:
 	syscall
 	jr $ra
 EndMalloc:
+
+j EndConvert
+Convert:
+	la $a0, test_day
+	ori $a1, $zero, 65
+	
+	addi $sp, $sp, -8
+	sw $ra, 0($sp)
+	sw $a0, 4($sp)
+	jal Malloc
+	lw $a0 4($sp)
+	# if $a1 = 'A'
+	ori $t0, $zero, 65
+	beq $a1, $t0, TypeA
+	# if $a1 = 'B'
+	ori $t0, $zero, 66
+	beq $a1, $t0, TypeB
+	# if $a1 = 'C'
+	ori $t0, $zero, 67
+	beq $a1, $t0, TypeC
+	j EndConvert
+TypeA:
+	# DD/MM/YYYY
+	or $t0, $zero, $zero
+	ori $t1, $zero, 11
+	
+	WhileTypeA:
+		slt $t2, $t0, $t1
+		beq $t2, $zero, EndWhileTypeA
+		lb $t2, 0($a0)
+		sb $t2, 0($v0)
+		addi $a0, $a0, 1
+		addi $v0, $v0, 1
+		addi $t0, $t0, 1
+		j WhileTypeA
+	EndWhileTypeA:
+	
+	addi $a0, $a0, -11
+	addi $v0, $v0, -11
+	
+	lb $t0, 3($a0)
+	sb $t0, 0($v0)
+	lb $t0, 0($a0)
+	sb $t0, 3($v0)
+	lb $t0, 4($a0)
+	sb $t0, 1($v0)
+	lb $t0, 1($a0)
+	sb $t0, 4($v0)
+	
+	lw $ra, 0($sp)
+	addi $sp, $sp, 8
+	jr $ra
+	j EndConvert
+TypeB:
+	j EndConvert
+TypeC:
+	j EndConvert
+EndConvert:
 
 
 j EndDay
