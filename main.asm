@@ -1,6 +1,7 @@
 .data:
 month_sum: .word 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365
 weekday_short: .asciiz "Sat\0\0\0Sun\0\0\0Mon\0\0\0Tues\0\0Wed\0\0\0Thurs\0Fri\0\0\0"
+month_short: .asciiz "Jan\0Feb\0Mar\0Apr\0May\0Jun\0Jul\0Aug\0Sep\0Oct\0Nov\0Dec\0"
 test_day: .asciiz "07/10/1998"
 
 .text:
@@ -15,12 +16,35 @@ Malloc:
 	jr $ra
 EndMalloc:
 
+# StrCpy source: $a0, des $a1, len: $a2
+j EndStrCpy
+StrCpy:
+	addi $a2, $a2, 1
+	or $t0, $zero, $zero
+	
+	WhileTypeA:
+		slt $t1, $t0, $a2
+		beq $t1, $zero, EndWhileTypeA
+		lb $t1, 0($a0)
+		sb $t1, 0($a1)
+		addi $a0, $a0, 1
+		addi $a1, $a1, 1
+		addi $t0, $t0, 1
+		j WhileTypeA
+	EndWhileTypeA:
+	
+	sub $a0, $a0, $a2
+	sub $a1, $a1, $a2
+	subi $a2, $a2, -1
+	jr $ra
+EndStrCpy:
+
 j EndConvert
 Convert:
 	la $a0, test_day
-	ori $a1, $zero, 65
+	ori $a1, $zero, 66
 	
-	addi $sp, $sp, -8
+	addi $sp, $sp, -16
 	sw $ra, 0($sp)
 	sw $a0, 4($sp)
 	jal Malloc
@@ -37,40 +61,65 @@ Convert:
 	j EndConvert
 TypeA:
 	# DD/MM/YYYY
-	or $t0, $zero, $zero
-	ori $t1, $zero, 11
-	
-	WhileTypeA:
-		slt $t2, $t0, $t1
-		beq $t2, $zero, EndWhileTypeA
-		lb $t2, 0($a0)
-		sb $t2, 0($v0)
-		addi $a0, $a0, 1
-		addi $v0, $v0, 1
-		addi $t0, $t0, 1
-		j WhileTypeA
-	EndWhileTypeA:
-	
-	addi $a0, $a0, -11
-	addi $v0, $v0, -11
+	or $a1, $zero, $v0
+	ori $a2, $zero, 10
+	jal StrCpy
+	or $v0, $zero, $a1
 	
 	lb $t0, 3($a0)
 	sb $t0, 0($v0)
-	lb $t0, 0($a0)
-	sb $t0, 3($v0)
 	lb $t0, 4($a0)
 	sb $t0, 1($v0)
+	lb $t0, 0($a0)
+	sb $t0, 3($v0)
 	lb $t0, 1($a0)
 	sb $t0, 4($v0)
 	
 	lw $ra, 0($sp)
-	addi $sp, $sp, 8
+	addi $sp, $sp, 16
 	jr $ra
-	j EndConvert
 TypeB:
-	j EndConvert
+	#Mth DD, YYYY
+	sw $a0, 4($sp)
+	sw $v0, 8($sp)
+	jal Month
+	# t0 = (MM - 1) * 4
+	addi $v0, $v0, -1
+	sll $t0, $v0, 2
+	lw $v0, 8($sp)
+	lw $a0, 4($sp)
+	
+	sw $a0, 4($sp)
+	la $a0, month_short
+	add $a0, $a0, $t0
+	
+	or $a1, $zero, $v0
+	ori $a2, $zero, 3
+	jal StrCpy
+	or $v0, $zero, $a1
+	lw $a0, 4($sp)
+	
+	ori $t0, $zero, 32
+	sb $t0, 3($v0)
+	lb $t0, 0($a0)
+	sb $t0, 4($v0)
+	lb $t0, 1($a0)
+	sb $t0, 5($v0) 
+	ori $t0, $zero, 44
+	sb $t0, 6($v0)
+	ori $t0, $zero, 32
+	sb $t0, 7($v0)
+	
+	addi $a0, $a0, 6
+	addi $a1, $v0, 7
+	ori $a2, $zero, 4
+	jal StrCpy
+	addi $a0, $a0, -6
+	lw $ra, 0($sp)
+	jr $ra
 TypeC:
-	j EndConvert
+	lw $ra, 0($sp)
+	jr $ra
 EndConvert:
 
 
