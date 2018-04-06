@@ -5,7 +5,7 @@ month_short: .asciiz "Jan\0Feb\0Mar\0Apr\0May\0Jun\0Jul\0Aug\0Sep\0Oct\0Nov\0Dec
 test_day: .asciiz "07/10/1998"
 
 .text:
-j Convert
+j Main
 
 
 j EndMalloc
@@ -88,11 +88,9 @@ TypeB:
 	sll $t0, $v0, 2
 	lw $v0, 8($sp)
 	lw $a0, 4($sp)
-	
 	sw $a0, 4($sp)
 	la $a0, month_short
 	add $a0, $a0, $t0
-	
 	or $a1, $zero, $v0
 	ori $a2, $zero, 3
 	jal StrCpy
@@ -111,13 +109,47 @@ TypeB:
 	sb $t0, 7($v0)
 	
 	addi $a0, $a0, 6
-	addi $a1, $v0, 7
+	addi $a1, $v0, 8
 	ori $a2, $zero, 4
 	jal StrCpy
 	addi $a0, $a0, -6
 	lw $ra, 0($sp)
 	jr $ra
 TypeC:
+	#DD Mth, YYYY
+	lb $t0, 0($a0)
+	sb $t0, 0($v0)
+	lb $t0, 1($a0)
+	sb $t0, 1($v0) 
+	ori $t0, $zero, 32
+	sb $t0, 2($v0)
+	
+	sw $a0, 4($sp)
+	sw $v0, 8($sp)
+	jal Month
+	# t0 = (MM - 1) * 4
+	addi $v0, $v0, -1
+	sll $t0, $v0, 2
+	lw $v0, 8($sp)
+	lw $a0, 4($sp)
+	sw $a0, 4($sp)
+	la $a0, month_short
+	add $a0, $a0, $t0
+	addi $a1, $v0, 3
+	addi $a2, $zero, 3
+	jal StrCpy
+	addi $v0, $a1, -3
+	lw $a0, 4($sp)
+	
+	ori $t0, $zero, 44
+	sb $t0, 6($v0)
+	ori $t0, $zero, 32
+	sb $t0, 7($v0)
+	addi $a0, $a0, 6
+	addi $a1, $v0, 8
+	ori $a2, $zero, 4
+	jal StrCpy
+	addi $a0, $a0, -6
 	lw $ra, 0($sp)
 	jr $ra
 EndConvert:
