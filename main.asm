@@ -20,7 +20,6 @@ j EndStrCpy
 StrCpy:
 	addi $a2, $a2, 1
 	or $t0, $zero, $zero
-	
 	WhileTypeA:
 		slt $t1, $t0, $a2
 		beq $t1, $zero, EndWhileTypeA
@@ -31,10 +30,6 @@ StrCpy:
 		addi $t0, $t0, 1
 		j WhileTypeA
 	EndWhileTypeA:
-	
-	sub $a0, $a0, $a2
-	sub $a1, $a1, $a2
-	subi $a2, $a2, -1
 	jr $ra
 EndStrCpy:
 
@@ -42,9 +37,14 @@ j EndConvert
 Convert:
 	addi $sp, $sp, -16
 	sw $ra, 0($sp)
-	sw $a0, 4($sp)
+	sw $s0, 4($sp)
+	sw $s1, 8($sp)
+        sw $a1, 12($sp)
+        or $s0, $0, $a0
 	jal Malloc
-	lw $a0 4($sp)
+        or $s1, $0, $v0
+
+        lw $a1, 12($sp)
 	# if $a1 = 'A'
 	ori $t0, $zero, 65
 	beq $a1, $t0, TypeA
@@ -56,93 +56,87 @@ Convert:
 	beq $a1, $t0, TypeC
 TypeA:
 	# DD/MM/YYYY
-	or $a1, $zero, $v0
+        or $a0, $zero, $s0
+	or $a1, $zero, $s1
 	ori $a2, $zero, 10
 	jal StrCpy
-	or $v0, $zero, $a1
 	
-	lb $t0, 3($a0)
-	sb $t0, 0($v0)
-	lb $t0, 4($a0)
-	sb $t0, 1($v0)
-	lb $t0, 0($a0)
-	sb $t0, 3($v0)
-	lb $t0, 1($a0)
-	sb $t0, 4($v0)
+	lb $t0, 3($s0)
+	sb $t0, 0($s1)
+	lb $t0, 4($s0)
+	sb $t0, 1($s1)
+	lb $t0, 0($s0)
+	sb $t0, 3($s1)
+	lb $t0, 1($s0)
+	sb $t0, 4($s1)
 	
         j Convert_Return
 TypeB:
 	#Mth DD, YYYY
-	sw $a0, 4($sp)
-	sw $v0, 8($sp)
+        or $a0, $0, $s0
 	jal Month
 	# t0 = (MM - 1) * 4
 	addi $v0, $v0, -1
 	sll $t0, $v0, 2
-	lw $v0, 8($sp)
-	lw $a0, 4($sp)
-	sw $a0, 4($sp)
 	la $a0, month_short
 	add $a0, $a0, $t0
-	or $a1, $zero, $v0
+	or $a1, $zero, $s1
 	ori $a2, $zero, 3
 	jal StrCpy
-	or $v0, $zero, $a1
-	lw $a0, 4($sp)
 	
-	ori $t0, $zero, 32
-	sb $t0, 3($v0)
-	lb $t0, 0($a0)
-	sb $t0, 4($v0)
-	lb $t0, 1($a0)
-	sb $t0, 5($v0) 
+	lb $t0, 0($s0)
+	sb $t0, 4($s1)
+	lb $t0, 1($s0)
+	sb $t0, 5($s1)
+
 	ori $t0, $zero, 44
-	sb $t0, 6($v0)
+	sb $t0, 6($s1)
 	ori $t0, $zero, 32
-	sb $t0, 7($v0)
+	sb $t0, 3($s1)
+	sb $t0, 7($s1)
 	
-	addi $a0, $a0, 6
-	addi $a1, $v0, 8
+	addi $a0, $s0, 6
+	addi $a1, $s1, 8
 	ori $a2, $zero, 4
 	jal StrCpy
-	addi $a0, $a0, -6
         j Convert_Return
 TypeC:
 	#DD Mth, YYYY
-	lb $t0, 0($a0)
-	sb $t0, 0($v0)
-	lb $t0, 1($a0)
-	sb $t0, 1($v0) 
+	lb $t0, 0($s0)
+	sb $t0, 0($s1)
+	lb $t0, 1($s0)
+	sb $t0, 1($s1) 
 	ori $t0, $zero, 32
-	sb $t0, 2($v0)
+	sb $t0, 2($s1)
 	
-	sw $a0, 4($sp)
-	sw $v0, 8($sp)
+        or $a0, $0, $s0
 	jal Month
 	# t0 = (MM - 1) * 4
 	addi $v0, $v0, -1
 	sll $t0, $v0, 2
-	lw $v0, 8($sp)
-	lw $a0, 4($sp)
-	sw $a0, 4($sp)
 	la $a0, month_short
 	add $a0, $a0, $t0
-	addi $a1, $v0, 3
+	addi $a1, $s1, 3
 	addi $a2, $zero, 3
 	jal StrCpy
-	addi $v0, $a1, -3
-	lw $a0, 4($sp)
 	
 	ori $t0, $zero, 44
-	sb $t0, 6($v0)
+	sb $t0, 6($s1)
 	ori $t0, $zero, 32
-	sb $t0, 7($v0)
-	addi $a0, $a0, 6
-	addi $a1, $v0, 8
+	sb $t0, 7($s1)
+
+	addi $a0, $s0, 6
+	addi $a1, $s1, 8
 	ori $a2, $zero, 4
 	jal StrCpy
-	addi $a0, $a0, -6
 Convert_Return:
+        or $a0, $0, $s1
+        or $a1, $0, $s0
+        ori $a2, $0, 256
+        jal StrCpy
+        or $v0, $0, $s0
+	lw $s1, 8($sp)
+	lw $s0, 4($sp)
 	lw $ra, 0($sp)
 	addi $sp, $sp, 16
 	jr $ra
@@ -349,7 +343,7 @@ or $a0, $0, $v0
 ori $a1, $0, 256
 ori $v0, $0, 8
 syscall
-ori $a1, $0, 65
+ori $a1, $0, 67
 jal Convert
 or $a0, $0, $v0
 ori $v0, $0, 4
