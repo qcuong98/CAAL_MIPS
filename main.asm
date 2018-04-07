@@ -20,16 +20,16 @@ j EndStrCpy
 StrCpy:
 	addi $a2, $a2, 1
 	or $t0, $zero, $zero
-	WhileTypeA:
+	StrCpy_While:
 		slt $t1, $t0, $a2
-		beq $t1, $zero, EndWhileTypeA
+		beq $t1, $zero, StrCpy_EndWhile
 		lb $t1, 0($a0)
 		sb $t1, 0($a1)
 		addi $a0, $a0, 1
 		addi $a1, $a1, 1
 		addi $t0, $t0, 1
-		j WhileTypeA
-	EndWhileTypeA:
+		j StrCpy_While
+	StrCpy_EndWhile:
 	jr $ra
 EndStrCpy:
 
@@ -47,14 +47,14 @@ Convert:
         lw $a1, 12($sp)
 	# if $a1 = 'A'
 	ori $t0, $zero, 65
-	beq $a1, $t0, TypeA
+	beq $a1, $t0, Convert_TypeA
 	# if $a1 = 'B'
 	ori $t0, $zero, 66
-	beq $a1, $t0, TypeB
+	beq $a1, $t0, Convert_TypeB
 	# if $a1 = 'C'
 	ori $t0, $zero, 67
-	beq $a1, $t0, TypeC
-TypeA:
+	beq $a1, $t0, Convert_TypeC
+Convert_TypeA:
 	# DD/MM/YYYY
         or $a0, $zero, $s0
 	or $a1, $zero, $s1
@@ -71,7 +71,7 @@ TypeA:
 	sb $t0, 4($s1)
 	
         j Convert_Return
-TypeB:
+Convert_TypeB:
 	#Mth DD, YYYY
         or $a0, $0, $s0
 	jal Month
@@ -100,7 +100,7 @@ TypeB:
 	ori $a2, $zero, 4
 	jal StrCpy
         j Convert_Return
-TypeC:
+Convert_TypeC:
 	#DD Mth, YYYY
 	lb $t0, 0($s0)
 	sb $t0, 0($s1)
