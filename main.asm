@@ -259,7 +259,7 @@ WeekDay:
 	sw $ra, 0($sp)
 	jal DateIndex
 	# $v0 = ($v0 + 1) % 7
-        addiu $v0, $v0, 1
+	addiu $v0, $v0, 1
 	ori $t0, $zero, 7
 	div $v0, $t0
 	mfhi $v0
@@ -336,18 +336,18 @@ EndDateIndex:
 
 j EndMain
 Main:
-addiu $sp, $sp, -32
-sw $ra, 0($sp)
-jal Malloc
-or $a0, $0, $v0
-ori $a1, $0, 256
-ori $v0, $0, 8
-syscall
-ori $a1, $0, 67
-jal Convert
-or $a0, $0, $v0
-ori $v0, $0, 4
-syscall
-lw $ra, 0($sp)
-addiu $sp, $sp, 32
+	addiu $sp, $sp, -32
+	sw $ra, 0($sp)
+	jal Malloc
+	or $a0, $0, $v0
+	ori $a1, $0, 256
+	ori $v0, $0, 8
+	syscall
+	ori $a1, $0, 67
+	jal Convert
+	or $a0, $0, $v0
+	ori $v0, $0, 4
+	syscall
+	lw $ra, 0($sp)
+	addiu $sp, $sp, 32
 EndMain:
