@@ -39,12 +39,12 @@ Convert:
 	sw $ra, 0($sp)
 	sw $s0, 4($sp)
 	sw $s1, 8($sp)
-        sw $a1, 12($sp)
-        or $s0, $0, $a0
+	sw $a1, 12($sp)
+	or $s0, $0, $a0
 	jal Malloc
-        or $s1, $0, $v0
+	or $s1, $0, $v0
 
-        lw $a1, 12($sp)
+	lw $a1, 12($sp)
 	# if $a1 = 'A'
 	ori $t0, $zero, 65
 	beq $a1, $t0, Convert_TypeA
@@ -56,7 +56,7 @@ Convert:
 	beq $a1, $t0, Convert_TypeC
 Convert_TypeA:
 	# DD/MM/YYYY
-        or $a0, $zero, $s0
+    or $a0, $zero, $s0
 	or $a1, $zero, $s1
 	ori $a2, $zero, 10
 	jal StrCpy
@@ -70,10 +70,10 @@ Convert_TypeA:
 	lb $t0, 1($s0)
 	sb $t0, 4($s1)
 	
-        j Convert_Return
+	j Convert_Return
 Convert_TypeB:
 	#Mth DD, YYYY
-        or $a0, $0, $s0
+	or $a0, $0, $s0
 	jal Month
 	# t0 = (MM - 1) * 4
 	addi $v0, $v0, -1
@@ -99,7 +99,7 @@ Convert_TypeB:
 	addi $a1, $s1, 8
 	ori $a2, $zero, 4
 	jal StrCpy
-        j Convert_Return
+	j Convert_Return
 Convert_TypeC:
 	#DD Mth, YYYY
 	lb $t0, 0($s0)
@@ -109,7 +109,7 @@ Convert_TypeC:
 	ori $t0, $zero, 32
 	sb $t0, 2($s1)
 	
-        or $a0, $0, $s0
+	or $a0, $0, $s0
 	jal Month
 	# t0 = (MM - 1) * 4
 	addi $v0, $v0, -1
@@ -130,11 +130,11 @@ Convert_TypeC:
 	ori $a2, $zero, 4
 	jal StrCpy
 Convert_Return:
-        or $a0, $0, $s1
-        or $a1, $0, $s0
-        ori $a2, $0, 256
-        jal StrCpy
-        or $v0, $0, $s0
+	or $a0, $0, $s1
+	or $a1, $0, $s0
+	ori $a2, $0, 256
+	jal StrCpy
+	or $v0, $0, $s0
 	lw $s1, 8($sp)
 	lw $s0, 4($sp)
 	lw $ra, 0($sp)
@@ -243,10 +243,10 @@ GetTime:
 	jal DateIndex
 	lw $t0, 4($sp)
 	sub $v0, $v0, $t0
-        # if v0 < 0 v0 = -v0
-        slt $t0, $v0, $0
-        beq $t0, $0, GetTime_DontNeg
-        sub $v0, $0, $v0
+	# if v0 < 0 v0 = -v0
+	slt $t0, $v0, $0
+	beq $t0, $0, GetTime_DontNeg
+	sub $v0, $0, $v0
 GetTime_DontNeg:
 	lw $ra, 0($sp)
 	addi $sp, $sp, 8
@@ -263,13 +263,13 @@ WeekDay:
 	ori $t0, $zero, 7
 	div $v0, $t0
 	mfhi $v0
-        # v0 *= 6
-        sll $t1, $v0, 1
-        addu $v0, $t1, $v0
-        sll $v0, $v0, 1
-        # v0 = weekday_short + v0
-        la $t0, weekday_short
-        addu $v0, $v0, $t0
+	# v0 *= 6
+	sll $t1, $v0, 1
+	addu $v0, $t1, $v0
+	sll $v0, $v0, 1
+	# v0 = weekday_short + v0
+	la $t0, weekday_short
+	addu $v0, $v0, $t0
 	lw $ra, 0($sp)
 	addi $sp, $sp, 4
 	jr $ra
