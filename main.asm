@@ -2,7 +2,6 @@
 month_sum: .word 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365
 weekday_short: .asciiz "Sat\0\0\0Sun\0\0\0Mon\0\0\0Tues\0\0Wed\0\0\0Thurs\0Fri\0\0\0"
 month_short: .asciiz "Jan\0Feb\0Mar\0Apr\0May\0Jun\0Jul\0Aug\0Sep\0Oct\0Nov\0Dec\0"
-test_day: .asciiz "07/10/1998"
 
 .text:
 j Main
@@ -41,9 +40,6 @@ EndStrCpy:
 
 j EndConvert
 Convert:
-	la $a0, test_day
-	ori $a1, $zero, 66
-	
 	addi $sp, $sp, -16
 	sw $ra, 0($sp)
 	sw $a0, 4($sp)
@@ -58,7 +54,6 @@ Convert:
 	# if $a1 = 'C'
 	ori $t0, $zero, 67
 	beq $a1, $t0, TypeC
-	j EndConvert
 TypeA:
 	# DD/MM/YYYY
 	or $a1, $zero, $v0
@@ -75,9 +70,7 @@ TypeA:
 	lb $t0, 1($a0)
 	sb $t0, 4($v0)
 	
-	lw $ra, 0($sp)
-	addi $sp, $sp, 16
-	jr $ra
+        j Convert_Return
 TypeB:
 	#Mth DD, YYYY
 	sw $a0, 4($sp)
@@ -113,8 +106,7 @@ TypeB:
 	ori $a2, $zero, 4
 	jal StrCpy
 	addi $a0, $a0, -6
-	lw $ra, 0($sp)
-	jr $ra
+        j Convert_Return
 TypeC:
 	#DD Mth, YYYY
 	lb $t0, 0($a0)
@@ -150,7 +142,9 @@ TypeC:
 	ori $a2, $zero, 4
 	jal StrCpy
 	addi $a0, $a0, -6
+Convert_Return:
 	lw $ra, 0($sp)
+	addi $sp, $sp, 16
 	jr $ra
 EndConvert:
 
@@ -355,7 +349,8 @@ or $a0, $0, $v0
 ori $a1, $0, 256
 ori $v0, $0, 8
 syscall
-jal WeekDay
+ori $a1, $0, 65
+jal Convert
 or $a0, $0, $v0
 ori $v0, $0, 4
 syscall
