@@ -1,10 +1,10 @@
 .data:
-month_sum: .word 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365
-weekday_short: .asciiz "Sat\0\0\0Sun\0\0\0Mon\0\0\0Tues\0\0Wed\0\0\0Thurs\0Fri\0\0\0"
-month_short: .asciiz "Jan\0Feb\0Mar\0Apr\0May\0Jun\0Jul\0Aug\0Sep\0Oct\0Nov\0Dec\0"
+	month_sum: .word 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365
+	weekday_short: .asciiz "Sat\0\0\0Sun\0\0\0Mon\0\0\0Tues\0\0Wed\0\0\0Thurs\0Fri\0\0\0"
+	month_short: .asciiz "Jan\0Feb\0Mar\0Apr\0May\0Jun\0Jul\0Aug\0Sep\0Oct\0Nov\0Dec\0"
 
 .text:
-j Main
+	j Main
 
 
 j EndMalloc
@@ -56,11 +56,11 @@ Convert:
 	beq $a1, $t0, Convert_TypeC
 Convert_TypeA:
 	# DD/MM/YYYY
-    or $a0, $zero, $s0
+	or $a0, $zero, $s0
 	or $a1, $zero, $s1
 	ori $a2, $zero, 10
 	jal StrCpy
-	
+
 	lb $t0, 3($s0)
 	sb $t0, 0($s1)
 	lb $t0, 4($s0)
@@ -69,7 +69,7 @@ Convert_TypeA:
 	sb $t0, 3($s1)
 	lb $t0, 1($s0)
 	sb $t0, 4($s1)
-	
+
 	j Convert_Return
 Convert_TypeB:
 	#Mth DD, YYYY
@@ -83,7 +83,7 @@ Convert_TypeB:
 	or $a1, $zero, $s1
 	ori $a2, $zero, 3
 	jal StrCpy
-	
+
 	lb $t0, 0($s0)
 	sb $t0, 4($s1)
 	lb $t0, 1($s0)
@@ -94,7 +94,7 @@ Convert_TypeB:
 	ori $t0, $zero, 32
 	sb $t0, 3($s1)
 	sb $t0, 7($s1)
-	
+
 	addi $a0, $s0, 6
 	addi $a1, $s1, 8
 	ori $a2, $zero, 4
@@ -108,7 +108,7 @@ Convert_TypeC:
 	sb $t0, 1($s1) 
 	ori $t0, $zero, 32
 	sb $t0, 2($s1)
-	
+
 	or $a0, $0, $s0
 	jal Month
 	# t0 = (MM - 1) * 4
@@ -119,7 +119,7 @@ Convert_TypeC:
 	addi $a1, $s1, 3
 	addi $a2, $zero, 3
 	jal StrCpy
-	
+
 	ori $t0, $zero, 44
 	sb $t0, 6($s1)
 	ori $t0, $zero, 32
@@ -247,7 +247,7 @@ GetTime:
 	slt $t0, $v0, $0
 	beq $t0, $0, GetTime_DontNeg
 	sub $v0, $0, $v0
-GetTime_DontNeg:
+	GetTime_DontNeg:
 	lw $ra, 0($sp)
 	addi $sp, $sp, 8
 	jr $ra
@@ -277,60 +277,60 @@ EndWeekDay:
 
 j EndDateIndex
 DateIndex:
-    addiu $sp, $sp, -16
-    sw $ra, 0($sp)
-    sw $s0, 4($sp)
-    sw $s1, 8($sp)
-    sw $a0, 12($sp)
-    jal Month
-    # s1 = 2 < month
-    ori $t0, $0, 2
-    slt $s1, $t0, $v0
-    # s0 = month_sum[month-1]
-    addiu $v0, $v0, -1
-    sll $v0, $v0, 2
-    la $t0, month_sum
-    addu $v0, $v0, $t0
-    lw $s0, 0($v0)
-    # s1 = s1 & is_leap_year
-    lw $a0, 12($sp)
-    jal LeapYear
-    and $s1, $s1, $v0
-    # if s1 -> s0 += 1
-    beq $s1, $0, DayIndex_DontAdd
-    addiu $s0, $s0, 1
-DayIndex_DontAdd:
-    # v0 = year - 1
-    lw $a0, 12($sp)
-    jal Year
-    addiu $v0, $v0, -1
-    # s0 += v0 * 365
-    ori $t1, $0, 365
-    mult $v0, $t1
-    mflo $t0
-    addu $s0, $s0, $t0
-    # s0 += v0 / 400
-    ori $t1, $0, 400
-    div $v0, $t1
-    mflo $t0
-    addu $s0, $s0, $t0
-    # s0 -= v0 / 100
-    ori $t1, $0, 100
-    div $v0, $t1
-    mflo $t0
-    subu $s0, $s0, $t0
-    # s0 += v0 / 4
-    srl $t0, $v0, 2
-    addu $s0, $s0, $t0
-    # v0 = s0 + day
-    lw $a0, 12($sp)
-    jal Day
-    addu $v0, $s0, $v0
-    lw $s1, 8($sp)
-    lw $s0, 4($sp)
-    lw $ra, 0($sp)
-    addiu $sp, $sp, 16
-    jr $ra
+	addiu $sp, $sp, -16
+	sw $ra, 0($sp)
+	sw $s0, 4($sp)
+	sw $s1, 8($sp)
+	sw $a0, 12($sp)
+	jal Month
+	# s1 = 2 < month
+	ori $t0, $0, 2
+	slt $s1, $t0, $v0
+	# s0 = month_sum[month-1]
+	addiu $v0, $v0, -1
+	sll $v0, $v0, 2
+	la $t0, month_sum
+	addu $v0, $v0, $t0
+	lw $s0, 0($v0)
+	# s1 = s1 & is_leap_year
+	lw $a0, 12($sp)
+	jal LeapYear
+	and $s1, $s1, $v0
+	# if s1 -> s0 += 1
+	beq $s1, $0, DayIndex_DontAdd
+	addiu $s0, $s0, 1
+	DayIndex_DontAdd:
+	# v0 = year - 1
+	lw $a0, 12($sp)
+	jal Year
+	addiu $v0, $v0, -1
+	# s0 += v0 * 365
+	ori $t1, $0, 365
+	mult $v0, $t1
+	mflo $t0
+	addu $s0, $s0, $t0
+	# s0 += v0 / 400
+	ori $t1, $0, 400
+	div $v0, $t1
+	mflo $t0
+	addu $s0, $s0, $t0
+	# s0 -= v0 / 100
+	ori $t1, $0, 100
+	div $v0, $t1
+	mflo $t0
+	subu $s0, $s0, $t0
+	# s0 += v0 / 4
+	srl $t0, $v0, 2
+	addu $s0, $s0, $t0
+	# v0 = s0 + day
+	lw $a0, 12($sp)
+	jal Day
+	addu $v0, $s0, $v0
+	lw $s1, 8($sp)
+	lw $s0, 4($sp)
+	lw $ra, 0($sp)
+	addiu $sp, $sp, 16
+	jr $ra
 EndDateIndex:
 
 
