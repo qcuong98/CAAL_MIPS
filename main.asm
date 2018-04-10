@@ -9,11 +9,128 @@
 
 j EndMalloc
 Malloc:
+	addi $sp, $sp, -4
+	sw $ra, 0($sp)
+	
 	ori $a0, $0, 256
 	ori $v0, $0, 9
 	syscall
+	
+	lw $ra, 0($sp)
+	addi $sp, $sp, 4
 	jr $ra
 EndMalloc:
+
+ScanStr:
+	addi $sp, $sp -8
+	sw $s0, 0($sp)
+	sw $ra, 4($sp)
+	
+	jal Malloc
+	or $s0, $0, $v0
+		
+	or $a0, $0, $v0
+	ori $a1, $0, 255
+	ori $v0, $0, 8
+	syscall
+
+	ori $v1, $0, 1 #set to invalid
+	
+	lb $t0, 10($s0)
+	bne $t0, $0, ScanStr_Return #not null terminated at 10
+
+	or $a0, $0, $s0
+	or $t0, $0, $0
+ScanStr_While:
+	ori $t1, $0, 10
+	slt $t1, $t0, $t1
+	beq $t1, $0, ScanStr_EndWhile
+	
+	lb $t2, 0($a0)
+	
+	ori $t1, $0, 2
+	beq $t0, $t1, ScanStr_Splash
+	ori $t1, $0, 5
+	beq $t0, $t1, ScanStr_Splash
+ScanStr_Digit:
+	ori $t1, $0, 48
+	slt $t1, $t2, $t1
+	bne $t1, $0, ScanStr_Return #smaller than '0'
+	
+	ori $t1, $0, 57
+	slt $t1, $t1, $t2
+	bne $t1, $0, ScanStr_Return #greater than '9'
+
+	j ScanStr_Cont
+ScanStr_Splash:
+	ori $t1, $0, 47
+	bne $t2, $t1, ScanStr_Return #not /
+ScanStr_Cont:	
+	addi $t0, $t0, 1
+	addi $a0, $a0, 1	
+ScanStr_EndWhile:
+
+	or $v1, $0, $0
+ScanStr_Return:
+	or $v0, $0, $s0
+	lw $s0, 0 ($sp)
+	lw $ra, 4 ($sp)
+	addi $sp, $sp, 8
+	jr $ra
+End_ScanStr:
+
+ScanInt:
+	addi $sp, $sp, -16
+	sw $ra, 0($sp)
+	
+	addi $a0, $sp, 4
+	ori $a1, $0, 11
+	ori $v0, $0, 8
+	syscall
+	
+	ori $v1, $0, 1 #set to invalid
+	
+	#set null at the end
+	addi $t0, $sp, 16
+	sb $0, 0($t0)
+	
+	addi $a0, $sp, 4
+	
+	#set result
+	or $v0, $0, $0
+ScanInt_While:
+	lb $t0, 0($a0)
+	beq $t0, $0, ScanInt_EndWhile
+	#check digit
+	ori $t1, $0, 48
+	slt $t1, $t0, $t1
+	bne $t1, $0, ScanInt_Return #smaller than '0'
+	
+	ori $t1, $0, 57
+	slt $t1, $t1, $t0
+	bne $t1, $0, ScanInt_Return #greater than '9'
+	
+	addi $t0, $t0, -48
+
+	#overflow at 2^28
+	ori $t1, $0, 1
+	sll $t1, $t1, 28
+	slt $t1, $v0, $t1
+	beq $t1, $0, ScanInt_Return
+	
+	#mul10
+	sll $v0, $v0, 2
+	addiu $v0, $v0, 1
+	sll $v0, $v0, 2
+	
+	addu $v0, $v0, $t0
+ScanInt_EndWhile:
+	or $v1, $0, $0
+ScanInt_Return:
+	lw $ra, 0($sp)
+	addi $sp, $sp, 16
+	jr $ra
+End_ScanInt:
 
 # StrCpy source: $a0, des $a1, len: $a2
 j EndStrCpy
