@@ -2,6 +2,15 @@
 	month_sum: .word 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365
 	weekday_short: .asciiz "Sat\0\0\0Sun\0\0\0Mon\0\0\0Tues\0\0Wed\0\0\0Thurs\0Fri\0\0\0"
 	month_short: .asciiz "Jan\0Feb\0Mar\0Apr\0May\0Jun\0Jul\0Aug\0Sep\0Oct\0Nov\0Dec\0"
+	input_day: .asciiz "Nhap ngay: "
+	input_month: .asciiz "Nhap thang: "
+	input_year: .asciiz "Nhap nam: "
+	input_error: .asciiz "Nhap sai, nhap lai: "
+	menu: .asciiz "------Ban hay chon 1 trong cac thao tac duoi day------\n1. Xuat chuoi TIME theo dinh dang DD/MM/YYYY\n2. Chuyen doi chuoi TIME thanh mot trong cac dinh dang sau:\n\tA. MM/DD/YYYY\n\tB. Month DD, YYYY\n\t\C. DD Month, YYYY\n3. Cho biet ngay vua nhap la thu may trong tuan\n4. Kiem tra xem nam trong chuoi time co phai la nam nhuan khong\n5. Cho biet khoang thoi gian giua chuoi TIME_1 va TIME_2\n6. Cho biet 2 nam nhuan gan nhat voi nam trong chuoi TIME\n"
+	input_choice: .asciiz "Lua chon cua ban: "
+	result: .asciiz "Ket qua: "
+	input_time1: .asciiz "Nhap chuoi TIME_1: "
+	input_time2: .asciiz "Nhap chuoi TIME_2: "
 
 .text:
 	j Main
@@ -20,117 +29,6 @@ Malloc:
 	addi $sp, $sp, 4
 	jr $ra
 EndMalloc:
-
-ScanStr:
-	addi $sp, $sp -8
-	sw $s0, 0($sp)
-	sw $ra, 4($sp)
-	
-	jal Malloc
-	or $s0, $0, $v0
-		
-	or $a0, $0, $v0
-	ori $a1, $0, 255
-	ori $v0, $0, 8
-	syscall
-
-	ori $v1, $0, 1 #set to invalid
-	
-	lb $t0, 10($s0)
-	bne $t0, $0, ScanStr_Return #not null terminated at 10
-
-	or $a0, $0, $s0
-	or $t0, $0, $0
-ScanStr_While:
-	ori $t1, $0, 10
-	slt $t1, $t0, $t1
-	beq $t1, $0, ScanStr_EndWhile
-	
-	lb $t2, 0($a0)
-	
-	ori $t1, $0, 2
-	beq $t0, $t1, ScanStr_Splash
-	ori $t1, $0, 5
-	beq $t0, $t1, ScanStr_Splash
-ScanStr_Digit:
-	ori $t1, $0, 48
-	slt $t1, $t2, $t1
-	bne $t1, $0, ScanStr_Return #smaller than '0'
-	
-	ori $t1, $0, 57
-	slt $t1, $t1, $t2
-	bne $t1, $0, ScanStr_Return #greater than '9'
-
-	j ScanStr_Cont
-ScanStr_Splash:
-	ori $t1, $0, 47
-	bne $t2, $t1, ScanStr_Return #not /
-ScanStr_Cont:	
-	addi $t0, $t0, 1
-	addi $a0, $a0, 1	
-ScanStr_EndWhile:
-
-	or $v1, $0, $0
-ScanStr_Return:
-	or $v0, $0, $s0
-	lw $s0, 0 ($sp)
-	lw $ra, 4 ($sp)
-	addi $sp, $sp, 8
-	jr $ra
-End_ScanStr:
-
-ScanInt:
-	addi $sp, $sp, -16
-	sw $ra, 0($sp)
-	
-	addi $a0, $sp, 4
-	ori $a1, $0, 11
-	ori $v0, $0, 8
-	syscall
-	
-	ori $v1, $0, 1 #set to invalid
-	
-	#set null at the end
-	addi $t0, $sp, 16
-	sb $0, 0($t0)
-	
-	addi $a0, $sp, 4
-	
-	#set result
-	or $v0, $0, $0
-ScanInt_While:
-	lb $t0, 0($a0)
-	beq $t0, $0, ScanInt_EndWhile
-	#check digit
-	ori $t1, $0, 48
-	slt $t1, $t0, $t1
-	bne $t1, $0, ScanInt_Return #smaller than '0'
-	
-	ori $t1, $0, 57
-	slt $t1, $t1, $t0
-	bne $t1, $0, ScanInt_Return #greater than '9'
-	
-	addi $t0, $t0, -48
-
-	#overflow at 2^28
-	ori $t1, $0, 1
-	sll $t1, $t1, 28
-	slt $t1, $v0, $t1
-	beq $t1, $0, ScanInt_Return
-	
-	#mul10
-	sll $v0, $v0, 2
-	addiu $v0, $v0, 1
-	sll $v0, $v0, 2
-	
-	addu $v0, $v0, $t0
-ScanInt_EndWhile:
-	or $v1, $0, $0
-ScanInt_Return:
-	lw $ra, 0($sp)
-	addi $sp, $sp, 16
-	jr $ra
-End_ScanInt:
 
 # StrCpy source: $a0, des $a1, len: $a2
 j EndStrCpy
@@ -451,20 +349,177 @@ DateIndex:
 EndDateIndex:
 
 
+j EndDate
+Date:
+	addiu $t0, $a3, 9
+	ori $t1, $0, 0
+	or $t2, $0, $a2
+	ori $t4, $0, 10
+Date_InitLoop:
+	ori $t3, $0, 5
+Date_Loop:
+	beq $t3, $0, Date_EndLoop
+	div $t2, $t4
+	mflo $t2
+	mfhi $t5
+	addiu $t5, $t5, 48
+	sb $t5, 0($t0)
+	addiu $t0, $t0, -1
+	addiu $t3, $t3, -1
+	j Date_Loop
+Date_EndLoop:
+	bne $t1, $0, Date_Return
+	ori $t1, $0, 1000
+	mult $a0, $t1
+	mflo $t2
+	addu $t2, $t2, $a1
+	j Date_InitLoop
+Date_Return:
+	sb $0, 10($a3)
+	ori $t0, $0, 47
+	sb $t0, 2($a3)
+	sb $t0, 5($a3)
+	or $v0, $0, $a3
+	jr $ra
+EndDate:
+
+
+j EndScanInt
+ScanInt:
+	ori $v0, $0, 5
+	syscall
+	ori $v1, $0, 0
+	jr $ra
+EndScanInt:
+
+
+j EndScanStr
+ScanStr:
+	ori $a1, $0, 256
+	ori $v0, $0, 8
+	syscall
+	or $v0, $0, $a0
+	ori $v1, $0, 0
+	jr $ra
+EndScanStr:
+
+
 j EndMain
 Main:
 	addiu $sp, $sp, -32
 	sw $ra, 0($sp)
+	sw $s0, 4($sp)
+	sw $s1, 8($sp)
+	sw $s2, 12($sp)
+
 	jal Malloc
-	or $a0, $0, $v0
-	ori $a1, $0, 256
-	ori $v0, $0, 8
-	syscall
-	ori $a1, $0, 67
-	jal Convert
-	or $a0, $0, $v0
+	sw $v0, 16($sp)
+
 	ori $v0, $0, 4
+	la $a0, input_day
 	syscall
+Main_LoopDay:
+		jal ScanInt
+		or $s0, $0, $v0
+		beq $v1, $0, Main_EndLoopDay
+		ori $v0, $0, 4
+		la $a0, input_error
+		syscall
+		j Main_LoopDay
+Main_EndLoopDay:
+
+	ori $v0, $0, 4
+	la $a0, input_month
+	syscall
+Main_LoopMonth:
+		jal ScanInt
+		or $s1, $0, $v0
+		beq $v1, $0, Main_EndLoopMonth
+		ori $v0, $0, 4
+		la $a0, input_error
+		syscall
+		j Main_LoopDay
+Main_EndLoopMonth:
+
+	ori $v0, $0, 4
+	la $a0, input_year
+	syscall
+Main_LoopYear:
+		jal ScanInt
+		or $s2, $0, $v0
+		beq $v1, $0, Main_EndLoopYear
+		ori $v0, $0, 4
+		la $a0, input_error
+		syscall
+		j Main_LoopYear
+Main_EndLoopYear:
+
+	or $a0, $0, $s0
+	or $a1, $0, $s1
+	or $a2, $0, $s2
+	lw $a3, 16($sp)
+	jal Date
+
+	ori $v0, $0, 4
+	la $a0, menu
+	syscall
+
+	ori $v0, $0, 4
+	la $a0, input_choice
+	syscall
+Main_LoopChoice:
+		jal ScanInt
+		or $s0, $0, $v0
+		slt $t0, $s0, $0
+		or $t0, $t0, $v1
+		ori $t1, $0, 6
+		slt $t1, $t1, $s0
+		or $t0, $t0, $t1
+		beq $t0, $0, Main_EndLoopChoice
+		ori $v0, $0, 4
+		la $a0, input_error
+		syscall
+		j Main_LoopChoice
+Main_EndLoopChoice:
+
+	addiu $s0, $s0, 1
+	sll $s0, $s0, 2
+	jal Main_Tmp
+Main_Tmp:
+	addu $t0, $ra, $s0
+	jr $t0
+	j Main_C1
+	j Main_C2
+	j Main_C3
+	j Main_C4
+	j Main_C5
+	j Main_C6
+Main_C1:
+	ori $v0, $0, 4
+	la $a0, result
+	syscall
+	lw $a0, 16($sp)
+	syscall
+	j Main_EndSwitch
+Main_C2:
+Main_C3:
+	lw $a0, 16($sp)
+	jal WeekDay
+	or $t0, $0, $v0
+	ori $v0, $0, 4
+	la $a0, result
+	syscall
+	or $a0, $0, $t0
+	syscall
+	j Main_EndSwitch
+Main_C4:
+Main_C5:
+Main_C6:
+Main_EndSwitch:
+
+	lw $s2, 12($sp)
+	lw $s1, 8($sp)
+	lw $s0, 4($sp)
 	lw $ra, 0($sp)
 	addiu $sp, $sp, 32
 EndMain:
