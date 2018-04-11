@@ -505,6 +505,43 @@ TwoLeapYear_Return:
 EndTwoLeapYear:
 
 
+j EndTryScanStr
+TryScanStr:
+	addiu $sp, $sp, -16
+	sw $ra, 0($sp)
+	sw $s0, 4($sp)
+	ori $v0, $0, 4
+	syscall
+	or $s0, $0, $a1
+TryScanStr_Loop:
+	or $a0, $0, $s0
+	jal ScanStr
+	or $a0, $0, $s0
+	jal Day
+	sw $v0, 8($sp)
+	or $a0, $0, $s0
+	jal Month
+	sw $v0, 12($sp)
+	or $a0, $0, $s0
+	jal Year
+	lw $a0, 8($sp)
+	lw $a1, 12($sp)
+	or $a2, $0, $v0
+	jal IsValidDate
+	bne $v0, $0, TryScanStr_EndLoop
+	la $a0, input_error
+	ori $v0, $0, 4
+	syscall
+	j TryScanStr_Loop
+TryScanStr_EndLoop:
+	or $v0, $0, $s0
+	lw $s0, 4($sp)
+	lw $ra, 0($sp)
+	addiu $sp, $sp, 16
+	jr $ra
+EndTryScanStr:
+
+
 j EndMain
 Main:
 	addiu $sp, $sp, -32
@@ -636,6 +673,18 @@ Main_C4:
 	jal ResultInt
 	j Main_EndSwitch
 Main_C5:
+	la $a0, input_time1
+	lw $a1, 16($sp)
+	jal TryScanStr
+	la $a0, input_time2
+	lw $a1, 20($sp)
+	jal TryScanStr
+	lw $a0, 16($sp)
+	lw $a1, 20($sp)
+	jal GetTime
+	or $a0, $0, $v0
+	jal ResultInt
+	j Main_EndSwitch
 Main_C6:
 	lw $a0, 16($sp)
 	jal TwoLeapYear
