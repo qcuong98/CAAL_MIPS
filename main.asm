@@ -11,6 +11,7 @@
 	result: .asciiz "Ket qua: "
 	input_time1: .asciiz "Nhap chuoi TIME_1: "
 	input_time2: .asciiz "Nhap chuoi TIME_2: "
+	input_format: .asciiz "Nhap dinh dang can chuyen: "
 
 .text:
 	j Main
@@ -18,15 +19,9 @@
 
 j EndMalloc
 Malloc:
-	addi $sp, $sp, -4
-	sw $ra, 0($sp)
-	
 	ori $a0, $0, 256
 	ori $v0, $0, 9
 	syscall
-	
-	lw $ra, 0($sp)
-	addi $sp, $sp, 4
 	jr $ra
 EndMalloc:
 
@@ -520,6 +515,8 @@ Main:
 
 	jal Malloc
 	sw $v0, 16($sp)
+	jal Malloc
+	sw $v0, 20($sp)
 
 Main_LoopInput:
 	la $a0, input_day
@@ -590,6 +587,42 @@ Main_C1:
 	jal ResultStr
 	j Main_EndSwitch
 Main_C2:
+	la $a0, input_format
+	ori $v0, $0, 4
+	syscall
+	Main_C2Loop:
+		lw $a0, 20($sp)
+		ori $a1, $0, 256
+		ori $v0, $0, 8
+		syscall
+		lb $t0, 1($a0)
+		ori $t1, $0, 10
+		beq $t0, $t1, Main_C2Fine
+		ori $t1, $0, 0
+		beq $t0, $t1, Main_C2Fine
+		j Main_C2Error
+	Main_C2Fine:
+		lb $t0, 2($a0)
+		bne $t0, $0, Main_C2Error
+		lb $s0, 0($a0)
+		ori $t0, $0, 65
+		slt $t0, $s0, $t0
+		ori $t1, $0, 67
+		slt $t1, $t1, $s0
+		or $t0, $t0, $t1
+		beq $t0, $0, Main_C2EndLoop
+	Main_C2Error:
+		la $a0, input_error
+		ori $v0, $0, 4
+		syscall
+		j Main_C2Loop
+	Main_C2EndLoop:
+	lw $a0, 16($sp)
+	or $a1, $0, $s0
+	jal Convert
+	or $a0, $0, $v0
+	jal ResultStr
+	j Main_EndSwitch
 Main_C3:
 	lw $a0, 16($sp)
 	jal WeekDay
