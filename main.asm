@@ -384,6 +384,12 @@ Date_Return:
 EndDate:
 
 
+j EndIsValidDate
+IsValidDate:
+	or $v0, $0, 1
+	jr $ra
+EndIsValidDate:
+
 j EndScanInt
 ScanInt:
 	ori $v0, $0, 5
@@ -403,6 +409,27 @@ ScanStr:
 	jr $ra
 EndScanStr:
 
+j EndTryScanInt
+TryScanInt:
+	addiu $sp, $sp, -8
+	sw $ra, 0($sp)
+	ori $v0, $0, 4
+	syscall
+TryScanInt_Loop:
+		jal ScanInt
+		sw $v0, 4($sp)
+		beq $v1, $0, TryScanInt_EndLoop
+		ori $v0, $0, 4
+		la $a0, input_error
+		syscall
+		j TryScanInt_Loop
+TryScanInt_EndLoop:
+	lw $v0, 4($sp)
+	lw $ra, 0($sp)
+	addiu $sp, $sp, 8
+	jr $ra
+EndTryScanInt:
+
 
 j EndMain
 Main:
@@ -415,44 +442,29 @@ Main:
 	jal Malloc
 	sw $v0, 16($sp)
 
-	ori $v0, $0, 4
+Main_LoopInput:
 	la $a0, input_day
-	syscall
-Main_LoopDay:
-		jal ScanInt
-		or $s0, $0, $v0
-		beq $v1, $0, Main_EndLoopDay
-		ori $v0, $0, 4
-		la $a0, input_error
-		syscall
-		j Main_LoopDay
-Main_EndLoopDay:
-
-	ori $v0, $0, 4
+	jal TryScanInt
+	or $s0, $0, $v0
 	la $a0, input_month
-	syscall
-Main_LoopMonth:
-		jal ScanInt
-		or $s1, $0, $v0
-		beq $v1, $0, Main_EndLoopMonth
-		ori $v0, $0, 4
-		la $a0, input_error
-		syscall
-		j Main_LoopDay
-Main_EndLoopMonth:
-
-	ori $v0, $0, 4
+	jal TryScanInt
+	or $s1, $0, $v0
 	la $a0, input_year
+	jal TryScanInt
+	or $s2, $0, $v0
+	or $a0, $0, $s0
+	or $a1, $0, $s1
+	or $a2, $0, $s2
+	jal IsValidDate
+	bne $v0, $0, Main_EndLoopInput
+	la $a0, input_error
+	ori $v0, $0, 4
 	syscall
-Main_LoopYear:
-		jal ScanInt
-		or $s2, $0, $v0
-		beq $v1, $0, Main_EndLoopYear
-		ori $v0, $0, 4
-		la $a0, input_error
-		syscall
-		j Main_LoopYear
-Main_EndLoopYear:
+	ori $a0, $0, 10
+	ori $v0, $0, 11
+	syscall
+	j Main_LoopInput
+Main_EndLoopInput:
 
 	or $a0, $0, $s0
 	or $a1, $0, $s1
