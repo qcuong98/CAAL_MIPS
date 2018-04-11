@@ -2,6 +2,8 @@
 	month_sum: .word 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365
 	weekday_short: .asciiz "Sat\0\0\0Sun\0\0\0Mon\0\0\0Tues\0\0Wed\0\0\0Thurs\0Fri\0\0\0"
 	month_short: .asciiz "Jan\0Feb\0Mar\0Apr\0May\0Jun\0Jul\0Aug\0Sep\0Oct\0Nov\0Dec\0"
+	good_msg: .asciiz "Good\0"
+	bad_msg: .asciiz "Bad\0"
 
 .text:
 	j Main
@@ -37,16 +39,20 @@ ScanStr:
 	ori $v1, $0, 1 #set to invalid
 	
 	lb $t0, 10($s0)
-	bne $t0, $0, ScanStr_Return #not null terminated at 10
-
-	or $a0, $0, $s0
+	ori $t1, $0, 10
+	beq $t0, $0, ScanStr_EndLine #null at 10
+	beq $t0, $t1, ScanStr_EndLine #or new line
+	j ScanStr_Return
+ScanStr_EndLine:
+	sb $0, 10($s0)
+	or $t3, $0, $s0
 	or $t0, $0, $0
 ScanStr_While:
 	ori $t1, $0, 10
 	slt $t1, $t0, $t1
 	beq $t1, $0, ScanStr_EndWhile
 	
-	lb $t2, 0($a0)
+	lb $t2, 0($t3)
 	
 	ori $t1, $0, 2
 	beq $t0, $t1, ScanStr_Splash
@@ -67,7 +73,8 @@ ScanStr_Splash:
 	bne $t2, $t1, ScanStr_Return #not /
 ScanStr_Cont:	
 	addi $t0, $t0, 1
-	addi $a0, $a0, 1	
+	addi $t3, $t3, 1
+	j ScanStr_While
 ScanStr_EndWhile:
 
 	or $v1, $0, $0
@@ -94,13 +101,15 @@ ScanInt:
 	addi $t0, $sp, 16
 	sb $0, 0($t0)
 	
-	addi $a0, $sp, 4
+	addi $t3, $sp, 4
 	
 	#set result
 	or $v0, $0, $0
 ScanInt_While:
-	lb $t0, 0($a0)
+	lb $t0, 0($t3)
 	beq $t0, $0, ScanInt_EndWhile
+	ori $t1, $0, 10
+	beq $t0, $t1, ScanInt_EndWhile
 	#check digit
 	ori $t1, $0, 48
 	slt $t1, $t0, $t1
@@ -119,11 +128,16 @@ ScanInt_While:
 	beq $t1, $0, ScanInt_Return
 	
 	#mul10
+	or $t1, $0, $v0
+	
 	sll $v0, $v0, 2
-	addiu $v0, $v0, 1
-	sll $v0, $v0, 2
+	addu $v0, $v0, $t1
+	sll $v0, $v0, 1
 	
 	addu $v0, $v0, $t0
+	
+	addi $t3, $t3, 1
+	j ScanInt_While
 ScanInt_EndWhile:
 	or $v1, $0, $0
 ScanInt_Return:
@@ -453,6 +467,19 @@ EndDateIndex:
 
 j EndMain
 Main:
+	jal ScanInt
+	la $a0, bad_msg
+	bne $v1, $0, Main_Bad
+
+	or $a0, $0, $v0
+	ori $v0, $0, 1
+	syscall
+	
+	la $a0, good_msg
+Main_Bad:
+	ori $v0, $0, 4
+	syscall
+	
 	addiu $sp, $sp, -32
 	sw $ra, 0($sp)
 	jal Malloc
