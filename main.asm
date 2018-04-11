@@ -457,42 +457,40 @@ EndResultInt:
 
 j EndTwoLeapYear
 TwoLeapYear:
-	addiu $sp, $sp, -20
+	addiu $sp, $sp, -32
 	sw $ra, 0($sp)
 	sw $s0, 4($sp)
 	sw $s1, 8($sp)
-	sw $0, 16($sp)
+	sw $0, 12($sp)
 	jal Year
 	or $s0, $0, $v0
-	jal Malloc
-	sw $v0, 12($sp)
 	ori $s1, $0, 1
 TwoLeapYear_Loop:
 	ori $a0, $0, 1
 	ori $a1, $0, 1
 	addu $a2, $s0, $s1
-	lw $a3, 12($sp)
+	addu $a3, $sp, 16
 	jal Date
 	or $a0, $0, $v0
 	jal LeapYear
 	beq $v0, $0, TwoLeapYear_Sub
-	lw $t0, 16($sp)
+	lw $t0, 12($sp)
 	bne $t0, $0, TwoLeapYear_V1Add
 	addu $t0, $s0, $s1
-	sw $t0, 16($sp)
+	sw $t0, 12($sp)
 TwoLeapYear_Sub:
 	ori $a0, $0, 1
 	ori $a1, $0, 1
 	subu $a2, $s0, $s1
-	lw $a3, 12($sp)
+	addu $a3, $sp, 16
 	jal Date
 	or $a0, $0, $v0
 	jal LeapYear
 	beq $v0, $0, TwoLeapYear_NextLoop
-	lw $t0, 16($sp)
+	lw $t0, 12($sp)
 	bne $t0, $0, TwoLeapYear_V1Sub
 	subu $t0, $s0, $s1
-	sw $t0, 16($sp)
+	sw $t0, 12($sp)
 TwoLeapYear_NextLoop:
 	addiu $s1, $s1, 1
 	j TwoLeapYear_Loop
@@ -503,11 +501,11 @@ TwoLeapYear_V1Add:
 TwoLeapYear_V1Sub:
 	subu $v1, $s0, $s1
 TwoLeapYear_Return:
-	lw $v0, 16($sp)
+	lw $v0, 12($sp)
 	lw $s1, 8($sp)
 	lw $s0, 4($sp)
 	lw $ra, 0($sp)
-	addiu $sp, $sp, 20
+	addiu $sp, $sp, 32
 	jr $ra
 EndTwoLeapYear:
 
