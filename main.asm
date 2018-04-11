@@ -6,7 +6,7 @@
 	input_month: .asciiz "Nhap thang: "
 	input_year: .asciiz "Nhap nam: "
 	input_error: .asciiz "Nhap sai, nhap lai: "
-	menu: .asciiz "------Ban hay chon 1 trong cac thao tac duoi day------\n1. Xuat chuoi TIME theo dinh dang DD/MM/YYYY\n2. Chuyen doi chuoi TIME thanh mot trong cac dinh dang sau:\n\tA. MM/DD/YYYY\n\tB. Month DD, YYYY\n\t\C. DD Month, YYYY\n3. Cho biet ngay vua nhap la thu may trong tuan\n4. Kiem tra xem nam trong chuoi time co phai la nam nhuan khong\n5. Cho biet khoang thoi gian giua chuoi TIME_1 va TIME_2\n6. Cho biet 2 nam nhuan gan nhat voi nam trong chuoi TIME\n"
+	menu: .asciiz "------Ban hay chon 1 trong cac thao tac duoi day------\n1. Xuat chuoi TIME theo dinh dang DD/MM/YYYY\n2. Chuyen doi chuoi TIME thanh mot trong cac dinh dang sau:\n\tA. MM/DD/YYYY\n\tB. Month DD, YYYY\n\t\C. DD Month, YYYY\n3. Cho biet ngay vua nhap la thu may trong tuan\n4. Kiem tra xem nam trong chuoi TIME co phai la nam nhuan khong\n5. Cho biet khoang thoi gian giua chuoi TIME_1 va TIME_2\n6. Cho biet 2 nam nhuan gan nhat voi nam trong chuoi TIME\n"
 	input_choice: .asciiz "Lua chon cua ban: "
 	result: .asciiz "Ket qua: "
 	input_time1: .asciiz "Nhap chuoi TIME_1: "
@@ -431,6 +431,87 @@ TryScanInt_EndLoop:
 EndTryScanInt:
 
 
+j EndResultStr
+ResultStr:
+	or $t0, $0, $a0
+	ori $v0, $0, 4
+	la $a0, result
+	syscall
+	or $a0, $0, $t0
+	syscall
+	jr $ra
+EndResultStr:
+
+j EndResultInt
+ResultInt:
+	or $t0, $0, $a0
+	la $a0, result
+	ori $v0, $0, 4
+	syscall
+	or $a0, $0, $t0
+	ori $v0, $0, 1
+	syscall
+	jr $ra
+EndResultInt:
+
+
+j EndTwoLeapYear
+TwoLeapYear:
+	addiu $sp, $sp, -20
+	sw $ra, 0($sp)
+	sw $s0, 4($sp)
+	sw $s1, 8($sp)
+	sw $0, 16($sp)
+	jal Year
+	or $s0, $0, $v0
+	jal Malloc
+	sw $v0, 12($sp)
+	ori $s1, $0, 1
+TwoLeapYear_Loop:
+	ori $a0, $0, 1
+	ori $a1, $0, 1
+	addu $a2, $s0, $s1
+	lw $a3, 12($sp)
+	jal Date
+	or $a0, $0, $v0
+	jal LeapYear
+	beq $v0, $0, TwoLeapYear_Sub
+	lw $t0, 16($sp)
+	bne $t0, $0, TwoLeapYear_V1Add
+	addu $t0, $s0, $s1
+	sw $t0, 16($sp)
+TwoLeapYear_Sub:
+	ori $a0, $0, 1
+	ori $a1, $0, 1
+	subu $a2, $s0, $s1
+	lw $a3, 12($sp)
+	jal Date
+	or $a0, $0, $v0
+	jal LeapYear
+	beq $v0, $0, TwoLeapYear_NextLoop
+	lw $t0, 16($sp)
+	bne $t0, $0, TwoLeapYear_V1Sub
+	subu $t0, $s0, $s1
+	sw $t0, 16($sp)
+TwoLeapYear_NextLoop:
+	addiu $s1, $s1, 1
+	j TwoLeapYear_Loop
+
+TwoLeapYear_V1Add:
+	addu $v1, $s0, $s1
+	j TwoLeapYear_Return
+TwoLeapYear_V1Sub:
+	subu $v1, $s0, $s1
+TwoLeapYear_Return:
+	lw $v0, 16($sp)
+	lw $s1, 8($sp)
+	lw $s0, 4($sp)
+	lw $ra, 0($sp)
+	addiu $sp, $sp, 20
+	jr $ra
+EndTwoLeapYear:
+
+
 j EndMain
 Main:
 	addiu $sp, $sp, -32
@@ -507,26 +588,40 @@ Main_Tmp:
 	j Main_C5
 	j Main_C6
 Main_C1:
-	ori $v0, $0, 4
-	la $a0, result
-	syscall
 	lw $a0, 16($sp)
-	syscall
+	jal ResultStr
 	j Main_EndSwitch
 Main_C2:
 Main_C3:
 	lw $a0, 16($sp)
 	jal WeekDay
-	or $t0, $0, $v0
-	ori $v0, $0, 4
-	la $a0, result
-	syscall
-	or $a0, $0, $t0
-	syscall
+	or $a0, $0, $v0
+	jal ResultStr
 	j Main_EndSwitch
 Main_C4:
+	lw $a0, 16($sp)
+	jal LeapYear
+	or $a0, $0, $v0
+	jal ResultInt
+	j Main_EndSwitch
 Main_C5:
 Main_C6:
+	lw $a0, 16($sp)
+	jal TwoLeapYear
+	or $t0, $0, $v0
+	la $a0, result
+	ori $v0, $0, 4
+	syscall
+	or $a0, $0, $t0
+	ori $v0, $0, 1
+	syscall
+	ori $a0, $0, 32
+	ori $v0, $0, 11
+	syscall
+	or $a0, $0, $v1
+	ori $v0, $0, 1
+	syscall
+	j Main_EndSwitch
 Main_EndSwitch:
 
 	lw $s2, 12($sp)
