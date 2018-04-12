@@ -25,6 +25,131 @@ Malloc:
 	jr $ra
 EndMalloc:
 
+
+j EndScanStr
+ScanStr:
+	addi $sp, $sp -8
+	sw $s0, 0($sp)
+	sw $ra, 4($sp)
+
+	or $s0, $0, $a0
+
+	ori $a1, $0, 255
+	ori $v0, $0, 8
+	syscall
+
+	ori $v1, $0, 1 #set to invalid
+	
+	lb $t0, 10($s0)
+	ori $t1, $0, 10
+	beq $t0, $0, ScanStr_EndLine #null at 10
+	beq $t0, $t1, ScanStr_EndLine #or new line
+	j ScanStr_Return
+ScanStr_EndLine:
+	sb $0, 10($s0)
+	or $t3, $0, $s0
+	or $t0, $0, $0
+ScanStr_While:
+	ori $t1, $0, 10
+	slt $t1, $t0, $t1
+	beq $t1, $0, ScanStr_EndWhile
+	
+	lb $t2, 0($t3)
+	
+	ori $t1, $0, 2
+	beq $t0, $t1, ScanStr_Splash
+	ori $t1, $0, 5
+	beq $t0, $t1, ScanStr_Splash
+ScanStr_Digit:
+	ori $t1, $0, 48
+	slt $t1, $t2, $t1
+	bne $t1, $0, ScanStr_Return #smaller than '0'
+	
+	ori $t1, $0, 57
+	slt $t1, $t1, $t2
+	bne $t1, $0, ScanStr_Return #greater than '9'
+
+	j ScanStr_Cont
+ScanStr_Splash:
+	ori $t1, $0, 47
+	bne $t2, $t1, ScanStr_Return #not /
+ScanStr_Cont:	
+	addi $t0, $t0, 1
+	addi $t3, $t3, 1
+	j ScanStr_While
+ScanStr_EndWhile:
+
+	or $v1, $0, $0
+ScanStr_Return:
+	or $v0, $0, $s0
+	lw $s0, 0 ($sp)
+	lw $ra, 4 ($sp)
+	addi $sp, $sp, 8
+	jr $ra
+EndScanStr:
+
+
+j EndScanInt
+ScanInt:
+	addi $sp, $sp, -16
+	sw $ra, 0($sp)
+	
+	addi $a0, $sp, 4
+	ori $a1, $0, 11
+	ori $v0, $0, 8
+	syscall
+	
+	ori $v1, $0, 1 #set to invalid
+	
+	#set null at the end
+	addi $t0, $sp, 15
+	sb $0, 0($t0)
+	
+	addi $t3, $sp, 4
+	
+	#set result
+	or $v0, $0, $0
+ScanInt_While:
+	lb $t0, 0($t3)
+	beq $t0, $0, ScanInt_EndWhile
+	ori $t1, $0, 10
+	beq $t0, $t1, ScanInt_EndWhile
+	#check digit
+	ori $t1, $0, 48
+	slt $t1, $t0, $t1
+	bne $t1, $0, ScanInt_Return #smaller than '0'
+	
+	ori $t1, $0, 57
+	slt $t1, $t1, $t0
+	bne $t1, $0, ScanInt_Return #greater than '9'
+	
+	addi $t0, $t0, -48
+
+	#overflow at 2^28
+	ori $t1, $0, 1
+	sll $t1, $t1, 28
+	slt $t1, $v0, $t1
+	beq $t1, $0, ScanInt_Return
+	
+	#mul10
+	or $t1, $0, $v0
+	
+	sll $v0, $v0, 2
+	addu $v0, $v0, $t1
+	sll $v0, $v0, 1
+	
+	addu $v0, $v0, $t0
+	
+	addi $t3, $t3, 1
+	j ScanInt_While
+ScanInt_EndWhile:
+	or $v1, $0, $0
+ScanInt_Return:
+	lw $ra, 0($sp)
+	addi $sp, $sp, 16
+	jr $ra
+EndScanInt:
+
 # StrCpy source: $a0, des $a1, len: $a2
 j EndStrCpy
 StrCpy:
@@ -385,24 +510,6 @@ IsValidDate:
 	jr $ra
 EndIsValidDate:
 
-j EndScanInt
-ScanInt:
-	ori $v0, $0, 5
-	syscall
-	ori $v1, $0, 0
-	jr $ra
-EndScanInt:
-
-
-j EndScanStr
-ScanStr:
-	ori $a1, $0, 256
-	ori $v0, $0, 8
-	syscall
-	or $v0, $0, $a0
-	ori $v1, $0, 0
-	jr $ra
-EndScanStr:
 
 j EndTryScanInt
 TryScanInt:
