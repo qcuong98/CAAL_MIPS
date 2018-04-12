@@ -1,5 +1,7 @@
 .data:
 	month_sum: .word 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365
+	month_day: .word 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+		
 	weekday_short: .asciiz "Sat\0\0\0Sun\0\0\0Mon\0\0\0Tues\0\0Wed\0\0\0Thurs\0Fri\0\0\0"
 	month_short: .asciiz "Jan\0Feb\0Mar\0Apr\0May\0Jun\0Jul\0Aug\0Sep\0Oct\0Nov\0Dec\0"
 	input_day: .asciiz "Nhap ngay: "
@@ -149,6 +151,65 @@ ScanInt_Return:
 	addi $sp, $sp, 16
 	jr $ra
 EndScanInt:
+
+IsValidTime:
+	addi $sp, $sp, -8
+	sw $ra, 0($sp)
+	sw $s0, 4($sp)
+	
+	or $v0, $0, $0 #set invalid
+	
+	#check for year
+	ori $t0, $0, 1900
+	slt $t0, $a2, $t0
+	bne $t0, $0, IsValidTime_Return
+	
+	ori $t0, $0, 9999
+	slt $t0, $t0, $a2
+	bne $t0, $0, IsValidTime_Return
+	
+	#check for month
+	ori $t0, $0, 1
+	slt $t0, $a1, $t0
+	bne $t0, $0, IsValidTime_Return
+	
+	ori $t0, $0, 12
+	slt $t0, $t0, $a1
+	bne $t0, $0, IsValidTime_Return
+	
+	#check for date
+	
+	ori $t0, $0, 1
+	slt $t0, $a0, $t0
+	bne $t0, $0, IsValidTime_Return
+		
+	la $t0, month_day
+	
+	or $t1, $0, $a1
+	sll $t1, $t1, 2
+	add $t0, $t0, $t1
+	
+	lw $s0, 0($t0)
+	
+	ori $t0, $0, 2
+	bne $0, $t0, IsValidTime_Check
+	#Feb
+	jal LeapYear
+	beq $v0, $0, IsValidTime_Check
+	addi $s0, $s0, 1
+IsValidTime_Check:
+	or $v0, $0, $0
+	
+	slt $t0, $s0, $a0
+	bne $t0, $0, IsValidTime_Return
+
+	ori $v0, $0, 1
+IsValidTime_Return:
+	lw $ra, 0($sp)
+	lw $s0, 4($sp)
+	addi $sp, $sp, 8
+	jr $ra
+EndIsValidTime:
 
 # StrCpy source: $a0, des $a1, len: $a2
 j EndStrCpy
