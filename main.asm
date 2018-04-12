@@ -153,7 +153,7 @@ ScanInt_Return:
 EndScanInt:
 
 IsValidTime:
-	addi $sp, $sp, -8
+	addi $sp, $sp, -32
 	sw $ra, 0($sp)
 	sw $s0, 4($sp)
 	
@@ -184,19 +184,21 @@ IsValidTime:
 	bne $t0, $0, IsValidTime_Return
 		
 	la $t0, month_day
-	
 	or $t1, $0, $a1
 	sll $t1, $t1, 2
 	add $t0, $t0, $t1
-	
 	lw $s0, 0($t0)
 	
 	ori $t0, $0, 2
-	bne $0, $t0, IsValidTime_Check
+	bne $a1, $t0, IsValidTime_Check
 	#Feb
+	sw $a0, 8($sp)
+	addu $a3, $sp, 12
+	jal Date
+	or $a0, $0, $v0
 	jal LeapYear
-	beq $v0, $0, IsValidTime_Check
-	addi $s0, $s0, 1
+	addu $s0, $s0, $v0
+	lw $a0, 8($sp)
 IsValidTime_Check:
 	or $v0, $0, $0
 	
@@ -207,7 +209,7 @@ IsValidTime_Check:
 IsValidTime_Return:
 	lw $ra, 0($sp)
 	lw $s0, 4($sp)
-	addi $sp, $sp, 8
+	addi $sp, $sp, 32
 	jr $ra
 EndIsValidTime:
 
@@ -565,13 +567,6 @@ Date_Return:
 EndDate:
 
 
-j EndIsValidDate
-IsValidDate:
-	or $v0, $0, 1
-	jr $ra
-EndIsValidDate:
-
-
 j EndTryScanInt
 TryScanInt:
 	addiu $sp, $sp, -8
@@ -695,7 +690,7 @@ TryScanStr_Loop:
 	lw $a0, 8($sp)
 	lw $a1, 12($sp)
 	or $a2, $0, $v0
-	jal IsValidDate
+	jal IsValidTime
 	bne $v0, $0, TryScanStr_EndLoop
 	la $a0, input_error
 	ori $v0, $0, 4
@@ -736,7 +731,7 @@ Main_LoopInput:
 	or $a0, $0, $s0
 	or $a1, $0, $s1
 	or $a2, $0, $s2
-	jal IsValidDate
+	jal IsValidTime
 	bne $v0, $0, Main_EndLoopInput
 	la $a0, input_error
 	ori $v0, $0, 4
