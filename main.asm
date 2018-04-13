@@ -1,7 +1,6 @@
 .data:
 	month_sum: .word 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365
 	month_day: .word 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
-		
 	weekday_short: .asciiz "Sat\0\0\0Sun\0\0\0Mon\0\0\0Tues\0\0Wed\0\0\0Thurs\0Fri\0\0\0"
 	month_short: .asciiz "Jan\0Feb\0Mar\0Apr\0May\0Jun\0Jul\0Aug\0Sep\0Oct\0Nov\0Dec\0"
 	input_day: .asciiz "Nhap ngay: "
@@ -16,24 +15,20 @@
 	input_format: .asciiz "Nhap dinh dang can chuyen: "
 
 .text:
-	j Main
+j Main
 
 
-j EndMalloc
+###############################################################
 Malloc:
 	ori $a0, $0, 256
 	ori $v0, $0, 9
 	syscall
 	jr $ra
-EndMalloc:
-
-
-j EndScanStr
+###############################################################
 ScanStr:
 	addi $sp, $sp -8
 	sw $s0, 0($sp)
 	sw $ra, 4($sp)
-
 	or $s0, $0, $a0
 
 	ori $a1, $0, 255
@@ -80,7 +75,6 @@ ScanStr_Cont:
 	addi $t3, $t3, 1
 	j ScanStr_While
 ScanStr_EndWhile:
-
 	or $v1, $0, $0
 ScanStr_Return:
 	or $v0, $0, $s0
@@ -88,10 +82,7 @@ ScanStr_Return:
 	lw $ra, 4 ($sp)
 	addi $sp, $sp, 8
 	jr $ra
-EndScanStr:
-
-
-j EndScanInt
+###############################################################
 ScanInt:
 	addi $sp, $sp, -16
 	sw $ra, 0($sp)
@@ -150,8 +141,7 @@ ScanInt_Return:
 	lw $ra, 0($sp)
 	addi $sp, $sp, 16
 	jr $ra
-EndScanInt:
-
+###############################################################
 IsValidTime:
 	addi $sp, $sp, -32
 	sw $ra, 0($sp)
@@ -211,10 +201,8 @@ IsValidTime_Return:
 	lw $s0, 4($sp)
 	addi $sp, $sp, 32
 	jr $ra
-EndIsValidTime:
-
+###############################################################
 # StrCpy source: $a0, des $a1, len: $a2
-j EndStrCpy
 StrCpy:
 	addi $a2, $a2, 1
 	or $t0, $zero, $zero
@@ -229,9 +217,7 @@ StrCpy:
 		j StrCpy_While
 	StrCpy_EndWhile:
 	jr $ra
-EndStrCpy:
-
-j EndConvert
+###############################################################
 Convert:
 	addi $sp, $sp, -16
 	sw $ra, 0($sp)
@@ -338,10 +324,7 @@ Convert_Return:
 	lw $ra, 0($sp)
 	addi $sp, $sp, 16
 	jr $ra
-EndConvert:
-
-
-j EndDay
+###############################################################
 Day:
 	# get first digit of a0
 	lb $v0, 0($a0)
@@ -354,10 +337,7 @@ Day:
 	addiu $t0, $t0, -48
 	addu $v0, $v0, $t0
 	jr $ra
-EndDay:
-
-
-j EndMonth
+###############################################################
 Month:
 	addiu $sp, $sp, -4
 	sw $ra, 0($sp)
@@ -367,10 +347,7 @@ Month:
 	lw $ra, 0($sp)
 	addiu $sp, $sp, 4
 	jr $ra
-EndMonth:
-
-
-j EndYear
+###############################################################
 Year:
 	addiu $sp, $sp, -12
 	sw $ra, 0($sp)
@@ -394,10 +371,9 @@ Year:
 	lw $ra, 0($sp)
 	addiu $sp, $sp, 12
 	jr $ra
-EndYear:
 
 
-j EndLeapYear
+###############################################################
 LeapYear:
 	addiu $sp, $sp, -4
 	sw $ra, 0($sp)
@@ -428,9 +404,7 @@ LeapYear_True:
 	addiu $sp, $sp, 4
 	ori $v0, $0, 1
 	jr $ra
-EndLeapYear:
-
-j EndGetTime
+###############################################################
 GetTime:	
 	addi $sp, $sp, -8
 	sw $ra, 0($sp)
@@ -449,9 +423,7 @@ GetTime:
 	lw $ra, 0($sp)
 	addi $sp, $sp, 8
 	jr $ra
-EndGetTime:
-
-j EndWeekDay
+###############################################################
 WeekDay:
 	addi $sp, $sp, -4
 	sw $ra, 0($sp)
@@ -471,9 +443,7 @@ WeekDay:
 	lw $ra, 0($sp)
 	addi $sp, $sp, 4
 	jr $ra
-EndWeekDay:
-
-j EndDateIndex
+###############################################################
 DateIndex:
 	addiu $sp, $sp, -16
 	sw $ra, 0($sp)
@@ -529,10 +499,7 @@ DateIndex:
 	lw $ra, 0($sp)
 	addiu $sp, $sp, 16
 	jr $ra
-EndDateIndex:
-
-
-j EndDate
+###############################################################
 Date:
 	addiu $t0, $a3, 9
 	ori $t1, $0, 0
@@ -564,10 +531,7 @@ Date_Return:
 	sb $t0, 5($a3)
 	or $v0, $0, $a3
 	jr $ra
-EndDate:
-
-
-j EndTryScanInt
+###############################################################
 TryScanInt:
 	addiu $sp, $sp, -8
 	sw $ra, 0($sp)
@@ -586,10 +550,7 @@ TryScanInt_EndLoop:
 	lw $ra, 0($sp)
 	addiu $sp, $sp, 8
 	jr $ra
-EndTryScanInt:
-
-
-j EndResultStr
+###############################################################
 ResultStr:
 	or $t0, $0, $a0
 	ori $v0, $0, 4
@@ -598,9 +559,7 @@ ResultStr:
 	or $a0, $0, $t0
 	syscall
 	jr $ra
-EndResultStr:
-
-j EndResultInt
+###############################################################
 ResultInt:
 	or $t0, $0, $a0
 	la $a0, result
@@ -610,10 +569,7 @@ ResultInt:
 	ori $v0, $0, 1
 	syscall
 	jr $ra
-EndResultInt:
-
-
-j EndTwoLeapYear
+###############################################################
 TwoLeapYear:
 	addiu $sp, $sp, -32
 	sw $ra, 0($sp)
@@ -665,10 +621,7 @@ TwoLeapYear_Return:
 	lw $ra, 0($sp)
 	addiu $sp, $sp, 32
 	jr $ra
-EndTwoLeapYear:
-
-
-j EndTryScanStr
+###############################################################
 TryScanStr:
 	addiu $sp, $sp, -16
 	sw $ra, 0($sp)
@@ -702,10 +655,7 @@ TryScanStr_EndLoop:
 	lw $ra, 0($sp)
 	addiu $sp, $sp, 16
 	jr $ra
-EndTryScanStr:
-
-
-j EndMain
+###############################################################
 Main:
 	addiu $sp, $sp, -32
 	sw $ra, 0($sp)
@@ -872,4 +822,3 @@ Main_EndSwitch:
 	lw $s0, 4($sp)
 	lw $ra, 0($sp)
 	addiu $sp, $sp, 32
-EndMain:
